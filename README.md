@@ -4,11 +4,8 @@ Fall detection should not stop at **"fall detected."** Lifeline turns a senior f
 
 > 🔗 **API:** https://lifeline-backend-o4vr.onrender.com/api/health  
 > 🏥 **Track:** Healthcare  
-> 🎥 **Demo video:** TODO — video URL  
-> 🌐 **Live demo:** TODO — Vercel URL
-
-![Lifeline cover](public/lifeline-cover.svg)
-
+> 🎥 **Demo video:** Devpost
+> 🌐 **Live demo:** https://lifeline-ten-ebon.vercel.app/
 ---
 
 ## What it does
@@ -224,7 +221,3 @@ lifeline/
 - Emergency service workflow integrations where legally and technically possible
 
 ---
-
-## License
-
-Hackathon prototype. Add a license before production or public reuse.
