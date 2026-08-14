@@ -1,106 +1,185 @@
-# HeartBeat AI
+# Lifeline: Emergency Fall-to-Hospital Routing
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/f49c337a-3026-4fb7-89e5-89fb607e595e" 
-       alt="Gemini_Generated_Image_qfkfx6qfkfx6qfkf" 
-       width="50%" />
-  <br>
-  <strong>A Vision-based AI fall detection and emergency response system for solo-living seniors.</strong>
-</p>
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li><a href="#project-description">Project Description</a></li>
-    <li><a href="#key-features">Key Features</a></li>
-    <li><a href="#how-it-works">How it Works</a></li>
-    <li><a href="#objectives">Objectives</a></li>
-    <li><a href="#tech-stack">Tech Stack</a></li>
-    <li><a href="#future-roadmap">Future Roadmap</a></li>
-    <li><a href="#installation--quick-start">Installation & Quick Start</a></li>
-  </ol>
-</details>
+![Lifeline cover](public/lifeline-cover.svg)
 
----
+**A mobile-first emergency response app that detects senior falls, speaks to the patient, listens for help, and routes the case to the most clinically appropriate hospital.**
 
-## Project Description
+## What It Does
 
-**HeartBeat AI** is an edge-computing software layer designed to identify "Critical Falls" using existing CCTV infrastructure. It addresses the **"Long Lie"**—the dangerous time gap between an undetected fall and the arrival of help. 
+Lifeline combines browser-based fall detection with a real emergency routing layer:
 
-Unlike invasive wearables, HeartBeat uses **Pose Estimation** to process mathematical skeletal data instead of raw video, ensuring user privacy. The system transforms passive monitoring into an active response node by integrating real-time computer vision with a hands-free voice verification loop.
+- Edge-AI fall monitoring UI
+- Real browser webcam pose detection using TensorFlow.js MoveNet
+- Prop Demo mode for safe live demos using a red or dark pen
+- Critical fall alert screen based on the provided mobile UI design
+- Real browser text-to-speech emergency prompts
+- Browser speech recognition for "OK" and "Help"
+- 59-second emergency call countdown
+- Press-and-hold cancel interaction
+- Emergency route-ready screen with GPS-style map
+- Caregiver and hospital call cards
+- Emergency timeline
+- FastAPI backend that scores hospitals by ETA, public facility metadata, and clinical specialty
+- Real backend AI-agent pipeline with live SSE streaming
 
----
+## Why It Matters
 
-## Key Features
+Most fall detection demos stop at "fall detected." Lifeline continues the workflow into the golden-hour response:
 
-* **Skeletal Detection**: Uses 2D coordinate tracking to identify fall trajectories without storing or transmitting personal visual data.
-* **Protocol Interoperability**: Engineered to interface with standard IP cameras via **RTSP** and **ONVIF** protocols.
-* **Verification Loop**: Minimizes false positives by initiating an automated voice dialogue to confirm the user's status.
-* **Edge-First Logic**: Designed for local inference to reduce latency and comply with strict data privacy standards.
-
----
-
-## How It Works
-
-### 1. Stream Ingestion & Analysis 📊
-The system targets raw video feeds via **RTSP/ONVIF**. The logic analyzes the vertical velocity ($\Delta y / \Delta t$) of the torso. A "fall event" is flagged when the rate of descent exceeds a calibrated threshold, followed by a static period at floor level.
-
-### 2. Voice-Based Confirmation (STT) 🗣️
-Upon detection, the system triggers a **Text-to-Speech (TTS)** query: *"Fall detected. Are you okay?"* It then opens a **Speech-to-Text (STT)** window for 60 seconds to capture specific verbal cues like "I'm fine" or "Help." 
-
-### 3. Escalation & Alerts ⚠️
-If the system registers **continued silence** (no verbal input) or a distress keyword, it bypasses the need for manual intervention. A high-priority alert is dispatched to the **Streamlit-based caregiver dashboard**, providing immediate status updates.
-
----
-
-## Objectives
-
-* **Zero-Wearable Reliability**: Eliminate the "human error" factor of forgotten or uncharged wearable devices.
-* **Universal Deployment**: Create a blueprint that works with existing $20 IP cameras as effectively as professional systems.
-* **Privacy-by-Design**: Ensure that only anonymous coordinate data is used for fall analysis, never raw faces or identifiable footage.
-
----
+1. Is the patient okay?
+2. Did the patient respond?
+3. What clinical capability is needed?
+4. Which hospital is clinically appropriate, not just nearest?
+5. Who needs to be notified?
 
 ## Tech Stack
 
-| Category | Technology |
-| :--- | :--- |
-| **Logic & Control** | Python |
-| **Frontend** | Streamlit |
-| **UX/UI Prototyping** | Figma (HCI Standards) |
-| **Vision Logic** | MediaPipe & OpenCV (Architectural Blueprint) |
-| **Audio Interaction** | SpeechRecognition (STT) & Pyttsx3 (TTS) |
-| **Protocols** | RTSP, ONVIF (Simulation Logic) |
+| Layer | Technology |
+| --- | --- |
+| Frontend | React + Vite + TypeScript |
+| UI | Custom CSS, mobile-first phone UI |
+| Icons | Lucide React |
+| Pose Detection | TensorFlow.js MoveNet SinglePose Lightning |
+| Prop Detection | Canvas color segmentation + orientation heuristic |
+| Voice Output | Browser SpeechSynthesis API |
+| Voice Input | Browser SpeechRecognition / webkitSpeechRecognition |
+| Backend | FastAPI |
+| API | `/api/dispatch`, `/api/dispatch/stream`, `/api/health` |
+| Agent Runtime | Python async sequential agents with shared state |
+| Streaming | Server-Sent Events from backend to React |
+| Hospital Data | OpenStreetMap Overpass API |
+| Routing Logic | Clinical triage + specialty matching + public hospital metadata |
 
----
+## Architecture
 
-## Future Roadmap
+```mermaid
+flowchart LR
+  A["Edge-AI Fall UI"] --> B["Voice Prompt"]
+  B --> C["Speech Recognition"]
+  C --> D["Emergency Trigger"]
+  D --> E["FastAPI SSE Stream"]
+  E --> F["TriageAgent"]
+  F --> G["SpecialtyMatchAgent"]
+  G --> H["HospitalSearchAgent"]
+  H --> I["CapacityAgent"]
+  I --> J["RoutingAgent"]
+  J --> K["AdmissionAgent"]
+  K --> L["NotifyAgent"]
+  L --> M["React Dispatch Screen"]
+```
 
-- [ ] **EVM Integration**: Implementing Eulerian Video Magnification to detect pulse rates via skin micro-color changes.
-- [ ] **Thread Optimization**: Refining Python concurrency to reduce the latency between CV detection and STT activation.
-- [ ] **Containerization**: Packaging the logic as a Docker service for deployment on local NAS or Raspberry Pi.
+## Real AI Agents
 
----
-## Installation & Quick Start
-> **Note to Judges:** To fully experience the **Real-time Voice Interaction** (Speech-to-Text and TTS), we recommend running the project locally. The cloud-hosted version may have hardware limitations regarding microphone and speaker access.
-   
-### UI
-[Figma Dashboard Prototype](https://www.figma.com/make/qWZ6zfUwPE7BDRohFc3xM1/Elderly-Safety-App-Dashboard)
-* *Note: Cloud version provides UI simulation. For full voice-control experience, please run locally.*
+The project now includes actual backend agents, not only frontend labels.
 
-### **Quick Start Locally (3 Steps)**
+Each agent is a Python class with one job:
 
-1. **Clone the Repository**
-   ```bash
-   git clone [https://github.com/mavisbong41/HeartBeat-IoT-Fall-Detection.git](https://github.com/mavisbong41/HeartBeat-IoT-Fall-Detection.git)
-   cd HeartBeat-IoT-Fall-Detection
-   
-2. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   
-3. **Launch HeartBeat AI**
-   ```bash
-   streamlit run app.py
+- `TriageAgent` classifies emergency severity and required clinical capability.
+- `SpecialtyMatchAgent` maps symptoms to trauma, orthopedics, ICU, imaging, neuro, or cardiac requirements.
+- `HospitalSearchAgent` discovers nearby hospitals from OpenStreetMap Overpass API.
+- `CapacityAgent` audits public hospital metadata and does not fabricate live bed or ICU availability.
+- `RoutingAgent` scores hospitals using ETA, specialty coverage, trauma capability, and public phone metadata.
+- `AdmissionAgent` prepares an ER call handoff packet.
+- `GeminiReasoningAgent` uses Gemini API for the dispatcher briefing when configured.
+- `NotifyAgent` prepares caregiver and hospital phone links plus a handoff summary.
 
-### Simulation
-[Live HeartBeat AI Demo](https://heartbeat-iot-fall-detection.streamlit.app/)
+The agents run sequentially through shared backend state, similar to the referenced winning architecture. The frontend subscribes to `/api/dispatch/stream` with Server-Sent Events and updates the agent cards as the backend emits `active`, `done`, and `complete` events.
+
+This means the demo is doing real backend orchestration:
+
+```text
+React REQUEST HELP
+→ EventSource /api/dispatch/stream
+→ FastAPI starts async agent pipeline
+→ each agent writes to shared state
+→ each result streams to UI live
+→ final dispatch payload renders emergency screen
+```
+
+## Run Locally
+
+Install frontend dependencies:
+
+```bash
+npm install
+```
+
+Install backend dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Start backend:
+
+```bash
+uvicorn app:app --reload --host 127.0.0.1 --port 8000
+```
+
+Gemini setup:
+
+```env
+GEMINI_API_KEY=your_google_ai_studio_key
+GEMINI_MODEL=gemini-3.6-flash
+```
+
+Start frontend:
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://127.0.0.1:5173
+```
+
+## Demo Flow
+
+1. Open the Lifeline mobile dashboard.
+2. Click **Simulate Fall**.
+3. The app speaks: "Critical. Potential fall detected. Are you okay?"
+4. Tap **Tap for Voice Check** and say "OK" or "Help", or use the buttons.
+5. If help is requested, the frontend opens a live SSE stream to the FastAPI agent backend.
+6. Watch the real backend agents complete one by one.
+7. The app shows the selected real hospital record, ETA, GPS-style map, caregiver link, hospital phone link, timeline, and AI routing reason.
+
+For a safer live demonstration, switch to **Pen Demo**, start the camera, hold a red or dark pen vertically, then lay it horizontally. Lifeline detects the prop's fall orientation and triggers the same emergency workflow.
+
+## Real Data Integrity
+
+Real:
+
+- React app
+- FastAPI backend
+- Webcam-based MoveNet pose estimation
+- Fall heuristic using torso orientation, hip height, and rapid descent
+- Pen-demo heuristic using canvas color segmentation and object orientation
+- Real Python agent classes
+- Live SSE backend-to-frontend streaming
+- OpenStreetMap Overpass API hospital discovery
+- Gemini API briefing when configured
+- Browser GPS coordinates when permission is granted
+- Browser voice output
+- Browser speech recognition where supported
+- `tel:` caregiver and hospital call links
+- Interactive countdown, buttons, state transitions, and backend agent call
+
+Not fabricated:
+
+- Live hospital bed or ICU availability is not invented if no public feed is available.
+- The prototype prepares call links; it does not secretly contact emergency services.
+- Caregiver SMS/WhatsApp is not claimed unless an external messaging API is connected.
+
+This is a hackathon prototype and should not be used as medical advice or an emergency dispatch system.
+
+## Future Scope
+
+- MediaPipe pose estimation from webcam or RTSP camera
+- Real IoT camera integration
+- Verified hospital capacity API integrations
+- WhatsApp/SMS caregiver alerts
+- Ambulance dispatch integrations
+- Bilingual voice commands in English and Chinese
+- Mobile PWA install mode

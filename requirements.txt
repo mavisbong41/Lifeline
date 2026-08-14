@@ -1,4 +1,6 @@
-streamlit
-SpeechRecognition
-pyttsx3
-opencv-python-headless
+fastapi
+uvicorn[standard]
+pydantic
+google-genai
+python-dotenv
+httpx

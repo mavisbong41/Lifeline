@@ -1,0 +1,79 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FCFF"/>
+      <stop offset=".48" stop-color="#EAF5FF"/>
+      <stop offset="1" stop-color="#D9ECF8"/>
+    </linearGradient>
+    <radialGradient id="softBlue" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1220 270) rotate(136) scale(560 400)">
+      <stop stop-color="#BEE7FF" stop-opacity=".95"/>
+      <stop offset=".55" stop-color="#E9F7FF" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="warm" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(340 720) rotate(-18) scale(430 250)">
+      <stop stop-color="#FFE2E7" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur36" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="36"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#softBlue)"/>
+  <rect width="1600" height="900" fill="url(#warm)"/>
+
+  <g opacity=".26">
+    <path d="M1118 168C1218 222 1265 292 1244 378C1220 478 1135 526 1027 587" stroke="#B2CDE1" stroke-width="5"/>
+    <path d="M1026 168C1127 222 1174 292 1152 378C1128 478 1044 526 936 587" stroke="#C7D9E9" stroke-width="5"/>
+    <g stroke="#91B6D0" stroke-width="4">
+      <path d="M1092 205L1187 225"/>
+      <path d="M1124 263L1226 275"/>
+      <path d="M1126 334L1239 334"/>
+      <path d="M1098 416L1210 391"/>
+      <path d="M1038 503L1145 459"/>
+    </g>
+  </g>
+
+  <g opacity=".18" transform="translate(1030 458)">
+    <rect x="0" y="0" width="260" height="88" rx="22" fill="#FFFFFF"/>
+    <rect x="35" y="28" width="190" height="9" rx="4.5" fill="#82A9C4"/>
+    <rect x="35" y="51" width="118" height="9" rx="4.5" fill="#82A9C4"/>
+  </g>
+
+  <g opacity=".24" transform="translate(128 112)">
+    <path d="M34 476V106C34 66 66 34 106 34H220C260 34 292 66 292 106V476" stroke="#C9DCEB" stroke-width="28" stroke-linecap="round"/>
+    <path d="M86 212H240" stroke="#D8E8F3" stroke-width="22" stroke-linecap="round"/>
+    <path d="M86 322H240" stroke="#D8E8F3" stroke-width="22" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(0 0)" opacity=".28">
+    <circle cx="1342" cy="636" r="74" fill="#BDEBFF" filter="url(#blur36)"/>
+    <circle cx="260" cy="250" r="92" fill="#FFFFFF" filter="url(#blur36)"/>
+  </g>
+
+  <g transform="translate(214 320)">
+    <path d="M0 80H138L170 24L226 172L284 66H382" stroke="#11233B" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="0" cy="80" r="16" fill="#FF4D5C"/>
+    <circle cx="382" cy="66" r="16" fill="#2CB7D9"/>
+  </g>
+
+  <g transform="translate(542 368)">
+    <text x="0" y="0" fill="#101B2D" font-family="Inter, Avenir Next, Helvetica Neue, Arial, sans-serif" font-size="118" font-weight="300" letter-spacing="5">lifeline</text>
+    <circle cx="356" cy="-31" r="12" fill="#2CB7D9"/>
+    <path d="M345 -31H367" stroke="#2CB7D9" stroke-width="5" stroke-linecap="round"/>
+    <path d="M356 -42V-20" stroke="#2CB7D9" stroke-width="5" stroke-linecap="round"/>
+    <text x="118" y="62" fill="#52677A" font-family="Inter, Avenir Next, Helvetica Neue, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="8">FALL DETECTION  |  ROUTING INTELLIGENCE</text>
+  </g>
+
+  <g transform="translate(1014 628)">
+    <rect x="0" y="0" width="320" height="72" rx="36" fill="#FFFFFF" fill-opacity=".72"/>
+    <circle cx="47" cy="36" r="14" fill="#34D399"/>
+    <text x="78" y="44" fill="#23364B" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="800">real hospital data</text>
+  </g>
+
+  <g opacity=".52" transform="translate(1380 86)">
+    <path d="M40 0V92" stroke="#D4E5F1" stroke-width="12" stroke-linecap="round"/>
+    <path d="M0 46H80" stroke="#D4E5F1" stroke-width="12" stroke-linecap="round"/>
+  </g>
+</svg>
