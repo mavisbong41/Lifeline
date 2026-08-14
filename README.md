@@ -182,6 +182,48 @@ http://127.0.0.1:5173
 npm run build
 ```
 
+## Deployment
+
+### Backend on Render
+
+Create a Render **Web Service** from this repository:
+
+```text
+Language: Python
+Build Command: pip install -r requirements.txt
+Start Command: uvicorn app:app --host 0.0.0.0 --port $PORT
+```
+
+Set Render environment variables:
+
+```env
+GEMINI_API_KEY=your_google_ai_studio_key
+GEMINI_MODEL=gemini-3.6-flash
+```
+
+Health check:
+
+```text
+https://lifeline-backend-o4vr.onrender.com/api/health
+```
+
+### Frontend on Vercel
+
+Import the same repository into Vercel as a Vite project:
+
+```text
+Build Command: npm run build
+Output Directory: dist
+```
+
+Set Vercel environment variables:
+
+```env
+VITE_API_URL=https://lifeline-backend-o4vr.onrender.com
+```
+
+The frontend uses `VITE_API_URL` for the live SSE agent stream in production. If the variable is not set, it falls back to local same-origin `/api/...` paths for development.
+
 ## Demo flow
 
 1. Open the Lifeline mobile dashboard.

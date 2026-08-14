@@ -140,6 +140,12 @@ type FallDetectorStatus = 'idle' | 'loading' | 'monitoring' | 'fall'
 type DetectionMode = 'pose' | 'prop'
 type AppLanguage = 'en' | 'zh'
 
+const API_BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
+
+function apiUrl(path: string) {
+  return `${API_BASE}${path}`
+}
+
 const copy = {
   en: {
     code: 'GB',
@@ -349,7 +355,7 @@ function App() {
       params.set('lng', String(coords.lng))
       setAnalysisMessage('Live GPS attached. Real hospital search agent is querying nearby facilities...')
     }
-    const stream = new EventSource(`/api/dispatch/stream?${params.toString()}`)
+    const stream = new EventSource(apiUrl(`/api/dispatch/stream?${params.toString()}`))
 
     stream.onmessage = (event) => {
       if (event.data === '[DONE]') {
