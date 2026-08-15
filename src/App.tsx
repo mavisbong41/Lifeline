@@ -495,7 +495,7 @@ function HomeScreen({
   const [cameraStatus, setCameraStatus] = useState<FallDetectorStatus>('idle')
   const [detectionMode, setDetectionMode] = useState<DetectionMode>('pose')
   const [condition, setCondition] = useState(conditionPresets[0].label)
-  const [poseMessage, setPoseMessage] = useState('Tap Start AI Camera for real fall detection')
+  const [poseMessage, setPoseMessage] = useState('')
 
   useEffect(() => {
     return () => {
@@ -1000,7 +1000,7 @@ function HomeScreen({
           {cameraStatus === 'idle' && <div className="tracking-box" />}
         </div>
         <p className="caption">Privacy Secured: All AI processing on local device</p>
-        <p className="pose-message">{poseMessage}</p>
+        {poseMessage && <p className="pose-message">{poseMessage}</p>}
         <div className="condition-grid">
           {conditionPresets.map((item) => (
             <button
