@@ -493,7 +493,7 @@ function HomeScreen({
   const fallFramesRef = useRef(0)
   const triggeredRef = useRef(false)
   const [cameraStatus, setCameraStatus] = useState<FallDetectorStatus>('idle')
-  const [detectionMode, setDetectionMode] = useState<DetectionMode>('pose')
+  const [activeDetection, setActiveDetection] = useState<DetectionMode>('pose')
   const [condition, setCondition] = useState(conditionPresets[0].label)
   const [poseMessage, setPoseMessage] = useState('')
 
@@ -507,25 +507,24 @@ function HomeScreen({
 
   async function startRealDetection() {
     if (cameraStatus === 'monitoring') return
+    propPointsRef.current = []
     propSafeAngleRef.current = null
     propCalibrationFramesRef.current = 0
     fallFramesRef.current = 0
     triggeredRef.current = false
     setCameraStatus('loading')
-    setPoseMessage(detectionMode === 'pose' ? 'Loading MoveNet pose detector...' : 'Starting prop fall demo camera...')
+    setPoseMessage('Loading AI models (body + object detection)...')
     try {
-      if (detectionMode === 'pose') {
-        await loadPoseRuntime()
-        await window.tf!.setBackend('webgl')
-        await window.tf!.ready()
-        detectorRef.current = await window.poseDetection!.createDetector(
-          window.poseDetection!.SupportedModels.MoveNet,
-          {
-            modelType: window.poseDetection!.movenet.modelType.SINGLEPOSE_LIGHTNING,
-            enableSmoothing: true,
-          },
-        )
-      }
+      await loadPoseRuntime()
+      await window.tf!.setBackend('webgl')
+      await window.tf!.ready()
+      detectorRef.current = await window.poseDetection!.createDetector(
+        window.poseDetection!.SupportedModels.MoveNet,
+        {
+          modelType: window.poseDetection!.movenet.modelType.SINGLEPOSE_LIGHTNING,
+          enableSmoothing: true,
+        },
+      )
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment', width: 640, height: 480 },
         audio: false,
@@ -534,9 +533,7 @@ function HomeScreen({
       videoRef.current.srcObject = stream
       await videoRef.current.play()
       setCameraStatus('monitoring')
-      setPoseMessage(detectionMode === 'pose'
-        ? 'MoveNet active: monitoring body orientation and sudden descent'
-        : 'Auto Pen tracking active: hold pen in camera, then lay it horizontal')
+      setPoseMessage('AI active: auto-detecting person or object in frame')
       detectLoop()
     } catch (error) {
       setCameraStatus('idle')
@@ -555,19 +552,24 @@ function HomeScreen({
       canvas.height = video.videoHeight || 480
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-      const fall = detectionMode === 'pose'
-        ? await detectPoseFall(ctx, video, canvas.height)
-        : detectPropFall(ctx, canvas.width, canvas.height)
+
+      // Automatically decide which detector applies based on what's in frame:
+      // a real body pose takes priority; otherwise fall back to object/pen tracking.
+      const poseResult = await detectPoseFall(ctx, video, canvas.height)
+      const mode: DetectionMode = poseResult.bodyFound ? 'pose' : 'prop'
+      setActiveDetection(mode)
+      const fall = poseResult.bodyFound ? poseResult : detectPropFall(ctx, canvas.width, canvas.height)
+
       setPoseMessage(fall.message)
       if (fall.detected) {
         fallFramesRef.current += 1
       } else {
         fallFramesRef.current = Math.max(0, fallFramesRef.current - 1)
       }
-      if (fallFramesRef.current >= (detectionMode === 'prop' ? 3 : 8) && !triggeredRef.current) {
+      if (fallFramesRef.current >= (mode === 'prop' ? 3 : 8) && !triggeredRef.current) {
         triggeredRef.current = true
         setCameraStatus('fall')
-        speak(detectionMode === 'prop' ? `Prop fall demo detected. ${condition} emergency triggered.` : `Potential fall detected by camera pose analysis. ${condition} emergency triggered.`)
+        speak(mode === 'prop' ? `Object fall detected. ${condition} emergency triggered.` : `Potential fall detected by camera pose analysis. ${condition} emergency triggered.`)
         window.setTimeout(onFall, 600)
         return
       }
@@ -577,15 +579,17 @@ function HomeScreen({
 
   async function detectPoseFall(ctx: CanvasRenderingContext2D, video: HTMLVideoElement, height: number) {
     const detector = detectorRef.current
-    if (!detector) return { detected: false, message: 'Pose detector not ready...' }
+    if (!detector) return { detected: false, bodyFound: false, message: 'Pose detector not ready...' }
     const poses = await detector.estimatePoses(video, { maxPoses: 1, flipHorizontal: false })
-    if (!poses[0]) return { detected: false, message: 'Searching for full body pose...' }
+    if (!poses[0]) return { detected: false, bodyFound: false, message: 'Searching for full body pose...' }
+    const result = evaluateFall(poses[0], height)
+    if (!result.bodyFound) return result
     drawPose(ctx, poses[0])
-    return evaluateFall(poses[0], height)
+    return result
   }
 
   function handleCanvasClick(event: React.PointerEvent<HTMLCanvasElement>) {
-    if (detectionMode !== 'prop' || cameraStatus === 'idle') return
+    if (activeDetection !== 'prop' || cameraStatus === 'idle') return
     const canvas = event.currentTarget
     const rect = canvas.getBoundingClientRect()
     const x = ((event.clientX - rect.left) / rect.width) * canvas.width
@@ -945,7 +949,7 @@ function HomeScreen({
     const rightAnkle = keypoints.right_ankle
     const required = [leftShoulder, rightShoulder, leftHip, rightHip]
     if (required.some((point) => !point || (point.score ?? 0) < 0.25)) {
-      return { detected: false, message: 'Searching for full body pose...' }
+      return { detected: false, bodyFound: false, message: 'Searching for full body pose...' }
     }
     const shoulder = midpoint(leftShoulder, rightShoulder)
     const hip = midpoint(leftHip, rightHip)
@@ -962,7 +966,7 @@ function HomeScreen({
     const message = detected
       ? 'Potential fall pattern: horizontal posture / low hip / rapid descent'
       : `Monitoring posture: torso ${Math.round(torsoDx)}x${Math.round(torsoDy)}`
-    return { detected, message }
+    return { detected, bodyFound: true, message }
   }
 
   return (
@@ -1018,29 +1022,14 @@ function HomeScreen({
             </button>
           ))}
         </div>
-        <div className="mode-switch" role="group" aria-label="Detection mode">
-          <button
-            className={detectionMode === 'pose' ? 'active' : ''}
-            onClick={() => setDetectionMode('pose')}
-            type="button"
-          >
-            Body AI
-          </button>
-          <button
-            className={detectionMode === 'prop' ? 'active' : ''}
-            onClick={() => {
-              setDetectionMode('prop')
-              propPointsRef.current = []
-              setPoseMessage('Pen Demo: auto detects pen angle from camera frames')
-            }}
-            type="button"
-          >
-            Pen Demo
-          </button>
-        </div>
+        {cameraStatus === 'monitoring' && (
+          <div className="mode-indicator">
+            Auto-detected: {activeDetection === 'pose' ? 'Body AI' : 'Object / Pen Tracking'}
+          </div>
+        )}
         <button className="camera-button" onClick={startRealDetection} type="button">
           <Activity size={17} />
-          {cameraStatus === 'idle' ? detectionMode === 'prop' ? 'Start Pen Demo Camera' : 'Start AI Camera' : cameraStatus === 'loading' ? 'Loading AI Model...' : 'Real Fall Detection Active'}
+          {cameraStatus === 'idle' ? 'Start AI Camera' : cameraStatus === 'loading' ? 'Loading AI Model...' : 'Real Fall Detection Active'}
         </button>
       </section>
 
