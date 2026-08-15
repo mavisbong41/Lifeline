@@ -461,6 +461,16 @@ button {
   background: #fff1f2;
 }
 
+.info-tile .low {
+  color: #b45309;
+  background: #fff7ed;
+}
+
+.info-tile .normal {
+  color: #16a34a;
+  background: #ecfdf3;
+}
+
 .simulate-button {
   display: flex;
   align-items: center;
