@@ -121,12 +121,12 @@ const agentTemplates = [
   { name: 'NotifyAgent', task: 'Caregiver and ER call-link preparation', result: 'Waiting for call links', latency: 'live', status: 'active' },
 ] as const
 
-const activityLog = [
-  ['Movement detected in living room', '2:45 PM • Today'],
-  ['Heart rate recorded: 72 bpm', '1:30 PM • Today'],
-  ['Medication reminder acknowledged', '12:15 PM • Today'],
-  ['Morning check-in completed', '10:00 AM • Today'],
-  ['System activated', '9:30 AM • Today'],
+const activityMonitoringEvents = [
+  'Movement detected in living room',
+  'No motion detected — resting',
+  'Living room camera heartbeat OK',
+  'Ambient light check complete',
+  'Room temperature nominal',
 ]
 
 const conditionPresets = [
@@ -271,6 +271,10 @@ function speak(text: string) {
   window.speechSynthesis.speak(utterance)
 }
 
+function formatNow() {
+  return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+}
+
 function getBrowserCoords(): Promise<{ lat: number; lng: number } | null> {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
@@ -308,8 +312,39 @@ function App() {
   const [holdProgress, setHoldProgress] = useState(0)
   const holdTimer = useRef<number | null>(null)
   const holdInterval = useRef<number | null>(null)
+  const [heartRate, setHeartRate] = useState(72)
+  const heartRateRef = useRef(72)
+  const [activityLog, setActivityLog] = useState<Array<[string, string]>>([
+    ['System activated', formatNow()],
+  ])
 
   const countdownPercent = useMemo(() => `${Math.max(0, (seconds / 59) * 100)}%`, [seconds])
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setHeartRate((current) => {
+        const drift = Math.round((Math.random() - 0.5) * 6)
+        const next = Math.min(118, Math.max(58, current + drift))
+        heartRateRef.current = next
+        return next
+      })
+    }, 4000)
+    return () => window.clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      const useHeartRateEntry = Math.random() < 0.4
+      const entry: [string, string] = useHeartRateEntry
+        ? [`Heart rate recorded: ${heartRateRef.current} bpm`, formatNow()]
+        : [
+            activityMonitoringEvents[Math.floor(Math.random() * activityMonitoringEvents.length)],
+            formatNow(),
+          ]
+      setActivityLog((current) => [entry, ...current].slice(0, 6))
+    }, 6000)
+    return () => window.clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     if (screen !== 'critical') return
@@ -443,6 +478,8 @@ function App() {
             onConditionChange={setSelectedCondition}
             onFall={() => setScreen('critical')}
             setLanguage={setLanguage}
+            heartRate={heartRate}
+            activityLog={activityLog}
           />
         )}
         {screen === 'critical' && (
@@ -475,11 +512,15 @@ function HomeScreen({
   onConditionChange,
   onFall,
   setLanguage,
+  heartRate,
+  activityLog,
 }: {
   language: AppLanguage
   onConditionChange: (condition: string) => void
   onFall: () => void
   setLanguage: (language: AppLanguage) => void
+  heartRate: number
+  activityLog: Array<[string, string]>
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -1051,8 +1092,10 @@ function HomeScreen({
         </InfoTile>
         <InfoTile icon={<Heart size={19} />} title="Vital Tracking">
           <small>Heart Rate</small>
-          <strong className="heart-rate">110 <em>bpm</em></strong>
-          <b className="elevated">Elevated</b>
+          <strong className="heart-rate">{heartRate} <em>bpm</em></strong>
+          <b className={heartRate > 100 ? 'elevated' : heartRate < 62 ? 'low' : 'normal'}>
+            {heartRate > 100 ? 'Elevated' : heartRate < 62 ? 'Low' : 'Normal'}
+          </b>
         </InfoTile>
       </div>
 
@@ -1063,8 +1106,8 @@ function HomeScreen({
 
       <section className="activity-card">
         <h2><Clock3 size={18} /> Activity Log</h2>
-        {activityLog.map(([label, time]) => (
-          <div className="log-row" key={label}>
+        {activityLog.map(([label, time], index) => (
+          <div className="log-row" key={`${label}-${time}-${index}`}>
             <span className="green-pulse" />
             <div>
               <strong>{label}</strong>
