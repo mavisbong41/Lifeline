@@ -367,30 +367,20 @@ button {
   box-shadow: 0 8px 18px rgba(255, 91, 97, 0.2);
 }
 
-.mode-switch {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 7px;
+.mode-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
   margin-top: 10px;
-  padding: 4px;
-  background: #f3f6fa;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-}
-
-.mode-switch button {
-  min-height: 34px;
-  color: #667085;
-  background: transparent;
-  border-radius: 9px;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.mode-switch button.active {
-  color: #fff;
-  background: #ff5b61;
-  box-shadow: 0 6px 14px rgba(255, 91, 97, 0.22);
+  padding: 4px 10px;
+  color: #ff5b61;
+  background: #fff6f6;
+  border: 1px solid #ffb5b8;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
 }
 
 .mini-grid,
